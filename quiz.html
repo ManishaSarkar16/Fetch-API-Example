@@ -1,0 +1,202 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>JavaScript Fetch API</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+	
+</head>	
+<body>
+<div class="container">
+	<div class="row">
+		<div class="col-9 mx-auto mt-5">
+			<h4 class="text-center">Quiz</h4>
+			<form action="">
+				<div class="form-group">
+					<label for="trivia_amount">Number of Questions:</label>
+					<input type="number" class="form-control" name="trivia_amount" id="trivia_amount" min="1" max="50" value="10">
+				</div>
+				<div class="form-group">
+					<label for="trivia_category">Select Category:</label>
+					<select name="trivia_category" class="form-control" id="trivia_category">
+						<option value="any">Any Category</option>
+						<option value="9">General Knowledge</option>
+						<option value="10">Entertainment: Books</option>
+						<option value="11">Entertainment: Film</option>
+						<option value="12">Entertainment: Music</option>
+						<option value="13">Entertainment: Musicals &amp; Theatres</option>
+						<option value="14">Entertainment: Television</option>
+						<option value="15">Entertainment: Video Games</option>
+						<option value="16">Entertainment: Board Games</option>
+						<option value="17">Science &amp; Nature</option>
+						<option value="18">Science: Computers</option>
+					</select>						
+				</div>
+				<div class="form-group">
+					<label for="trivia_difficulty">Select Difficulty:</label>
+					<select name="trivia_difficulty" class="form-control" id="trivia_difficulty">
+						<option value="any">Any Difficulty</option>
+						<option value="easy">Easy</option>
+						<option value="medium">Medium</option>
+						<option value="hard">Hard</option>
+					</select>						
+				</div>
+				<div class="form-group">
+					<label for="trivia_type">Select Type:</label>
+					<select name="trivia_type" class="form-control" id="trivia_type">
+						<option value="any">Any Type</option>
+						<option value="multiple">Multiple Choice</option>
+						<option value="boolean">True / False</option>
+					</select>					
+				</div>
+				<!-- <div class="form-group">
+					<label for="trivia_encode">Select Encoding: </label>
+					<select name="trivia_encode" class="form-control" id="trivia_encode">
+						<option value="default">Default Encoding</option>
+						<option value="urlLegacy">Legacy URL Encoding</option>
+						<option value="url3986">URL Encoding (RFC 3986)</option>
+						<option value="base64">Base64 Encoding</option>
+					</select>				
+				</div> -->
+				<button type="submit" class="btn btn-primary quizBtn">start Quiz</button>
+			</form>
+		</div>
+	</div>
+</div>
+<div class="container p-2">
+	<div class="row">
+		<div class="col-10 mx-auto mt-5">
+			<h4 class="text-center">start Quiz</h4>
+
+			<div class="show-que-ans" id="myDIV"></div>
+			<div class="text-right d-none mt-5" id="save_button">
+				<button type="submit" class="btn btn-primary CheckAns">Submit</button>
+			</div>
+		</div>
+	</div>
+</div>			
+<script  charset="utf-8">
+let quiz=document.querySelector('.quizBtn');
+quiz.addEventListener('click',getInputValue)
+var disabled_btn = document.querySelector(".CheckAns");
+
+function getInputValue(e){
+	e.preventDefault()
+	// Selecting the Number of Questions 
+	var amount_value = document.getElementById("trivia_amount").value;
+	// Selecting Category 
+	var category_value = document.getElementById("trivia_category").value;
+	// Selecting Difficulty 
+	var difficulty_value = document.getElementById("trivia_difficulty").value;
+	// Selecting Type 
+	var type_value = document.getElementById("trivia_type").value;
+	// Selecting Encoding 
+	//var encod_value = document.getElementById("trivia_encode").value;
+	//console.log(amount_value, category_value, difficulty_value, type_value, encod_value);
+
+	disabled_btn.removeAttribute("disabled");
+
+
+	let url = 'https://opentdb.com/api.php?amount=' +amount_value +'&category='+category_value +'&difficulty='+difficulty_value +'&type='+type_value;
+
+	fetch(url).then(function (response) {
+		if (response.ok) {
+			return response.json();
+		}
+		return Promise.reject(response);
+	}).then(function (data) {
+		showQueAnsOnPage(data);
+	}).catch(function (error) {
+		console.warn('Something went wrong.', error);
+	});
+}
+
+function showQueAnsOnPage(quizData){
+	let users = quizData;
+	//console.log(users.results);
+	var app = document.querySelector('#myDIV');
+	app.querySelectorAll('.quiz_question').forEach(div=>{
+		div.remove()
+	})
+	app.querySelectorAll('.custom-control').forEach(div=>{
+		div.remove()
+	})
+	app.querySelectorAll('.save-btn').forEach(div=>{
+		div.remove()
+	})
+	app.querySelectorAll('.correct-ans').forEach(div=>{
+		div.remove();
+	})
+	var list = document.createElement('div'); 
+	users.results.forEach(function (user,indQues) {
+		var question = document.createElement('h6');
+		question.innerHTML = user.question;  
+		let category_name = user.category;
+		question.className = ('quiz_question mt-4'); 
+		question.setAttribute("quiz-category", category_name);
+
+		let incorrect_ans = user.incorrect_answers;
+		var correctAns = user.correct_answer;
+		var AllOptions = document.createElement('div');
+		let all_options = "";
+		let rendNum= Math.floor(Math.random()*(4));
+		incorrect_ans.splice(rendNum,0,correctAns);
+		//incorrect_ans.push(correctAns);
+		console.log(rendNum);
+		incorrect_ans.forEach(optionValus);
+
+		// Correct Ans
+		var correct_an = document.createElement('h6');
+		correct_an.innerHTML = correctAns; 
+		correct_an.className = ('text-right mt-2 d-none correct-ans'); 
+		correct_an.setAttribute("value", correctAns);
+		correct_an.setAttribute("Q-id","q"+indQues);
+
+		function optionValus(value,indAns) {
+			ind=indQues+"-"+indAns;
+			var radioHtml = '<input type="radio" class="custom-control-input" id="' + ind + '" name="q' + indQues + '" value="'+ value +'">';
+			all_options += "<div class='custom-control custom-radio custom-control-inline'>"   + radioHtml + "<label class='custom-control-label' for="+ ind +" value='"+ value +"'>" + value + "</lable>" +  "</div>";
+
+		}
+		AllOptions.innerHTML = all_options;
+
+		var element = document.getElementById("save_button");
+		element.classList.remove("d-none");
+
+	
+		list.appendChild(question);	
+		list.appendChild(AllOptions);
+		list.appendChild(correct_an); 
+			
+	});
+	app.append(list);
+	let ansCheck=document.querySelector('.CheckAns');
+		ansCheck.addEventListener('click',checkAns)
+			function checkAns(e){
+				var selected_ansvalus=[];
+				var selected_ansId = [];
+				document.querySelectorAll('input[name^=q]:checked').forEach(inp=>{
+					selected_ansvalus.push(inp.value);
+					let q_id=inp.name;
+					let ans_array=document.querySelector(`.correct-ans[q-id=${q_id}]`);
+					let ans=ans_array.getAttribute('value')
+					if(ans==inp.value){
+						inp.closest('.custom-radio').style.color='blue'
+					}else{
+						inp.closest('.custom-radio').style.color='red'
+
+					}
+				})
+				disabled_btn.setAttribute("disabled", true);
+				app.querySelectorAll('.correct-ans').forEach(div=>{
+					div.classList.remove('d-none');
+				})
+		}
+}
+</script>
+</body>
+</html>
